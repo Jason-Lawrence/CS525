@@ -1,0 +1,85 @@
+# CS525: Assignment 4
+Jason Lawrence
+
+Alec Buchanan
+
+## Structs
+To implement the B+-Tree Manager we designed a few structs of our own and modified the BT_ScanHandle. 
+
+### BT_ScanHandle
+
+#### Attributes
+
+|Data Type      |Variable      |Description         |
+|:--------------|:-------------|:-------------------|
+|BTreeHandle *  |tree          |Stores a pointer to a BTree struct|
+|int            |scanned       |counts how many records have been scanned|
+|Value *        |key           |Stores a pointer to the key to be scanned|
+
+### BT_Mgr
+This struct stores the data about the tree itself.
+
+#### Attributes
+
+|Data Type      |Variable      |Description         |
+|:--------------|:-------------|:-------------------|
+|BM_BufferPool *|bm            |This variable stores a pointer to a bufferPool manager to read and write data|
+|BM_PageHandle *|page          |This variable stores a pointer to a PageHandle used to read record pages from the table|
+|MetaData *     |md            |This variable stores a pointer to a metadata struct used to store the data for the tree|
+
+### MetaData
+This struct is used to store the metadata of the tree. Storing it in the struct makes it easier to read and write the data to the metadata file. 
+
+#### Attributes
+
+|Data Type      |Variable      |Description         |
+|:--------------|:-------------|:-------------------|
+|int            |treeOrder     |This variable stores the order of the tree|
+|int            |numLeafs      |Stores the amount of leafs in the tree|
+|int            |numNodes      |Stores the amount of nodes in the tree|
+|DataType       |kt            |Stores the DataType of the key for the tree|
+|node_t *       |root          |This variable stores a pointer to the root node of the tree|
+|Value **       |keys          |List of keys in the b+-tree in acending order|
+
+### node_t
+This struct is used to store the data for the node. 
+
+#### Attributes
+
+|Data Type      |Variable      |Description         |
+|:--------------|:-------------|:-------------------|
+|int            |type          ||
+|int            |occupancy     ||
+|void *         |keys          |This variable stores a list of keys in the node|
+|void **        |ptrs          |This variable stores a list of ptrs for other nodes|
+
+## B+-Tree Functions
+When creating a new btree we create the btree file and a second metadata file to write all of the metadata to for the btree. The use of the MetaData struct makes this really easy.
+To open a btree The metadata file is open first to get the specific information on the btree so we can initialize the BT_Mgr struct which is then stored in the BTreeHandle struct passed in by the user.  
+Afterwards we open the btree file by utilizing the buffer manger. To close a btree file we first retrieve the data about the tree from the BTreeHandle struct and writes the metadata to the metadata file. 
+We then proceed to shutdown the buffer manager and free any pointers. To delete a btree we remove both the btree file and the metadata file associated with that btree.
+
+## Key Functions
+TODO
+
+## Scan Functions
+When a client wants to start a scan we populate the fields of the scan handle. The client then calls nextEntry repeatedly to get the records in sort order.
+For every record scanned from the tree the scanned count increases by 1. To check to see if the scan is complete it checks how many successful scanned records there have been.
+If this number equals the amount of leafs in the tree then there are no more entries to scan and we return error RC_IM_NO_MORE_ENTRIES. If it isn't then we call findKey() on the current key. 
+It then stores the resulting record and finds the next key from searching for the next index in the key list. When there are no more entries and the user wants to close the scan
+we set all of the values of the handle to NULL. 
+
+## Debug Functions
+To implement this funtion we wrote a wrapper function that calls a recursive funtion. We first print the root node and then recurse down the left subtree until it reaches a leaf node.
+It then prints the record key pairs for that leaf. As it returns back up the tree it prints the non leaf nodes and its pointer, key pairs.  
+
+## Contributions
+
+### Alec Buchanan
+- Key Functions
+- Debug Functions
+
+### Jason Lawrence
+- Makefile
+- B+Tree Functions
+- Scan Functions
